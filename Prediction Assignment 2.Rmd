@@ -1,0 +1,51 @@
+---
+title: "Prediction-Assignment"
+author: "AM"
+date: "2023-01-23"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+# Course Project
+## Executive Summary
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.The goal of your project is to predict the manner in which they did the exercise.
+
+### Load libraries
+```{r}
+library(caret)
+library(randomForest)
+
+
+### Download the Data
+train <- read.csv("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", na.strings=c("NA","#DIV/0!", ""))
+test <- read.csv('http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv', na.strings=c("NA","#DIV/0!", ""))
+
+### Exploratory Analysis
+dim(train)
+dim(test)
+
+### Clean data
+train <-train[,colSums(is.na(train)) == 0]
+test <-test[,colSums(is.na(test)) == 0]
+train <-train[,-c(1:7)]
+test <-test[,-c(1:7)]
+
+### Slice the data
+set.seed(1234)
+trainpart <- createDataPartition(y=train$classe, p=0.75, list=FALSE)
+Training <- train[trainpart, ] 
+Testing <- train[-trainpart, ]
+
+### Model Train 
+rfModel <- randomForest(as.factor(classe)~ ., data = Training, importance = TRUE, ntrees = 10)
+predictRf <- predict(rfModel , Training)
+u1 <- union(predictRf ,Training$classe)
+t1 <- table(factor(predictRf, u1), factor(Training$classe, u1))
+print(confusionMatrix(t1))
+
+### Test data prediction
+predictRf <- predict(rfModel , test)
+predictRf
+``` 
